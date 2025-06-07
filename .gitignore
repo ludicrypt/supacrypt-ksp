@@ -1,0 +1,63 @@
+# Windows build artifacts
+Debug/
+Release/
+x64/
+x86/
+*.exe
+*.dll
+*.pdb
+*.obj
+*.lib
+*.exp
+*.ilk
+*.idb
+
+# Visual Studio
+.vs/
+*.vcxproj.user
+*.vcxproj.filters
+*.sdf
+*.opensdf
+*.suo
+*.user
+
+# Windows KSP specific
+*.sys
+*.cat
+*.inf
+
+# Build artifacts
+build/
+*.o
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Backup files
+*~
+*.bak
+
+# Credential files
+*.key
+*.pem
+*.pfx
+*.p12
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+
+# Installer build
+installer/build/
+installer/output/
