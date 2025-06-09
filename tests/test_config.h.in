@@ -1,0 +1,35 @@
+// test_config.h.in - Test configuration for Supacrypt KSP
+// This file is configured by CMake
+
+#pragma once
+
+// Version information
+#define SUPACRYPT_KSP_TEST_VERSION_MAJOR @PROJECT_VERSION_MAJOR@
+#define SUPACRYPT_KSP_TEST_VERSION_MINOR @PROJECT_VERSION_MINOR@
+#define SUPACRYPT_KSP_TEST_VERSION_PATCH @PROJECT_VERSION_PATCH@
+#define SUPACRYPT_KSP_TEST_VERSION_STRING "@PROJECT_VERSION@"
+
+// Build configuration
+#define SUPACRYPT_KSP_BUILD_TYPE "@CMAKE_BUILD_TYPE@"
+
+// Test data paths
+#define SUPACRYPT_KSP_TEST_DATA_DIR "@CMAKE_CURRENT_BINARY_DIR@/test_data"
+#define SUPACRYPT_KSP_TEST_CERTS_DIR "@CMAKE_CURRENT_BINARY_DIR@/test_data/certificates"
+#define SUPACRYPT_KSP_TEST_KEYS_DIR "@CMAKE_CURRENT_BINARY_DIR@/test_data/keys"
+
+// Backend configuration for testing
+#define SUPACRYPT_KSP_TEST_BACKEND_ENDPOINT "localhost:50051"
+#define SUPACRYPT_KSP_TEST_BACKEND_TIMEOUT_MS 30000
+
+// Feature flags
+#cmakedefine ENABLE_GRPC
+#cmakedefine ENABLE_OBSERVABILITY
+#cmakedefine BUILD_BENCHMARKS
+
+// Platform information
+#define SUPACRYPT_KSP_TEST_PLATFORM "@CMAKE_SYSTEM_NAME@"
+#define SUPACRYPT_KSP_TEST_ARCHITECTURE "@CMAKE_SYSTEM_PROCESSOR@"
+
+// Compiler information
+#define SUPACRYPT_KSP_TEST_COMPILER "@CMAKE_CXX_COMPILER_ID@"
+#define SUPACRYPT_KSP_TEST_COMPILER_VERSION "@CMAKE_CXX_COMPILER_VERSION@"

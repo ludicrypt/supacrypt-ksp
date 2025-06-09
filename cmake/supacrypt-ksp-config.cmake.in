@@ -1,0 +1,178 @@
+# supacrypt-ksp-config.cmake.in - CMake package configuration file
+
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+# Check minimum CMake version
+if(CMAKE_VERSION VERSION_LESS "3.20")
+    set(${CMAKE_FIND_PACKAGE_NAME}_NOT_FOUND_MESSAGE "Supacrypt KSP requires CMake 3.20 or later")
+    set(${CMAKE_FIND_PACKAGE_NAME}_FOUND FALSE)
+    return()
+endif()
+
+# Check C++ standard requirement
+if(CMAKE_CXX_STANDARD AND CMAKE_CXX_STANDARD LESS 17)
+    set(${CMAKE_FIND_PACKAGE_NAME}_NOT_FOUND_MESSAGE "Supacrypt KSP requires C++17 or later")
+    set(${CMAKE_FIND_PACKAGE_NAME}_FOUND FALSE)
+    return()
+endif()
+
+# Verify Windows platform
+if(NOT WIN32)
+    set(${CMAKE_FIND_PACKAGE_NAME}_NOT_FOUND_MESSAGE "Supacrypt KSP is only supported on Windows")
+    set(${CMAKE_FIND_PACKAGE_NAME}_FOUND FALSE)
+    return()
+endif()
+
+# Set installation paths
+set_and_check(SUPACRYPT_KSP_INCLUDE_DIR "@PACKAGE_SUPACRYPT_INSTALL_INCLUDEDIR@")
+set_and_check(SUPACRYPT_KSP_LIB_DIR "@PACKAGE_SUPACRYPT_INSTALL_LIBDIR@")
+
+# Find required dependencies
+find_dependency(Protobuf REQUIRED)
+find_dependency(gRPC REQUIRED)
+find_dependency(OpenSSL REQUIRED)
+find_dependency(nlohmann_json REQUIRED)
+find_dependency(spdlog REQUIRED)
+
+# Include targets file
+if(NOT TARGET supacrypt::ksp)
+    include("${CMAKE_CURRENT_LIST_DIR}/supacrypt-ksp-targets.cmake")
+endif()
+
+# Set version variables
+set(SUPACRYPT_KSP_VERSION "@PROJECT_VERSION@")
+set(SUPACRYPT_KSP_VERSION_MAJOR "@PROJECT_VERSION_MAJOR@")
+set(SUPACRYPT_KSP_VERSION_MINOR "@PROJECT_VERSION_MINOR@")
+set(SUPACRYPT_KSP_VERSION_PATCH "@PROJECT_VERSION_PATCH@")
+
+# Set feature flags
+set(SUPACRYPT_KSP_GRPC_ENABLED @ENABLE_GRPC@)
+set(SUPACRYPT_KSP_OBSERVABILITY_ENABLED @ENABLE_OBSERVABILITY@)
+
+# Provide imported targets
+set(SUPACRYPT_KSP_TARGETS
+    supacrypt::ksp
+)
+
+if(TARGET supacrypt::proto)
+    list(APPEND SUPACRYPT_KSP_TARGETS supacrypt::proto)
+endif()
+
+# Helper function to create KSP applications
+function(supacrypt_add_ksp_application TARGET_NAME)
+    cmake_parse_arguments(KSP
+        "CONSOLE"  # Options
+        "OUTPUT_NAME"  # Single value args
+        "SOURCES;LIBRARIES;COMPILE_DEFINITIONS"  # Multi value args
+        ${ARGN}
+    )
+
+    # Create executable
+    if(KSP_CONSOLE)
+        add_executable(${TARGET_NAME} ${KSP_SOURCES})
+        set_target_properties(${TARGET_NAME} PROPERTIES
+            WIN32_EXECUTABLE FALSE
+        )
+    else()
+        add_executable(${TARGET_NAME} WIN32 ${KSP_SOURCES})
+    endif()
+
+    # Link with Supacrypt KSP
+    target_link_libraries(${TARGET_NAME} PRIVATE supacrypt::ksp)
+
+    # Link additional libraries
+    if(KSP_LIBRARIES)
+        target_link_libraries(${TARGET_NAME} PRIVATE ${KSP_LIBRARIES})
+    endif()
+
+    # Add compile definitions
+    if(KSP_COMPILE_DEFINITIONS)
+        target_compile_definitions(${TARGET_NAME} PRIVATE ${KSP_COMPILE_DEFINITIONS})
+    endif()
+
+    # Set output name
+    if(KSP_OUTPUT_NAME)
+        set_target_properties(${TARGET_NAME} PROPERTIES
+            OUTPUT_NAME ${KSP_OUTPUT_NAME}
+        )
+    endif()
+
+    # Windows-specific settings
+    target_compile_definitions(${TARGET_NAME} PRIVATE
+        WIN32_LEAN_AND_MEAN
+        NOMINMAX
+        UNICODE
+        _UNICODE
+    )
+endfunction()
+
+# Helper function to create KSP test applications
+function(supacrypt_add_ksp_test TARGET_NAME)
+    if(NOT BUILD_TESTING)
+        return()
+    endif()
+
+    cmake_parse_arguments(TEST
+        "INTEGRATION;BENCHMARK"  # Options
+        "TIMEOUT"  # Single value args
+        "SOURCES;LIBRARIES;COMPILE_DEFINITIONS"  # Multi value args
+        ${ARGN}
+    )
+
+    # Create test executable
+    add_executable(${TARGET_NAME} ${TEST_SOURCES})
+
+    # Link with Supacrypt KSP and test frameworks
+    target_link_libraries(${TARGET_NAME} PRIVATE 
+        supacrypt::ksp
+        GTest::gtest
+        GTest::gtest_main
+    )
+
+    if(TEST_BENCHMARK)
+        target_link_libraries(${TARGET_NAME} PRIVATE benchmark::benchmark)
+    endif()
+
+    # Link additional libraries
+    if(TEST_LIBRARIES)
+        target_link_libraries(${TARGET_NAME} PRIVATE ${TEST_LIBRARIES})
+    endif()
+
+    # Add compile definitions
+    if(TEST_COMPILE_DEFINITIONS)
+        target_compile_definitions(${TARGET_NAME} PRIVATE ${TEST_COMPILE_DEFINITIONS})
+    endif()
+
+    # Register test
+    add_test(NAME ${TARGET_NAME} COMMAND ${TARGET_NAME})
+
+    # Set timeout if specified
+    if(TEST_TIMEOUT)
+        set_tests_properties(${TARGET_NAME} PROPERTIES TIMEOUT ${TEST_TIMEOUT})
+    endif()
+
+    # Set test properties based on type
+    if(TEST_INTEGRATION)
+        set_tests_properties(${TARGET_NAME} PROPERTIES
+            LABELS "integration"
+            TIMEOUT 300  # 5 minutes default for integration tests
+        )
+    elseif(TEST_BENCHMARK)
+        set_tests_properties(${TARGET_NAME} PROPERTIES
+            LABELS "benchmark"
+            TIMEOUT 600  # 10 minutes default for benchmarks
+        )
+    else()
+        set_tests_properties(${TARGET_NAME} PROPERTIES
+            LABELS "unit"
+            TIMEOUT 60   # 1 minute default for unit tests
+        )
+    endif()
+endfunction()
+
+# Status message
+message(STATUS "Found Supacrypt KSP ${SUPACRYPT_KSP_VERSION}")
+
+check_required_components(supacrypt-ksp)

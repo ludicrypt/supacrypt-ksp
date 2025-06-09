@@ -1,0 +1,68 @@
+; ksp_exports.def - Export definitions for Supacrypt KSP
+; Copyright (c) 2025 ludicrypt. All rights reserved.
+; Licensed under the MIT License.
+
+LIBRARY supacrypt-ksp
+
+EXPORTS
+    ; NCrypt Key Storage Provider interface functions
+    ; These are the required functions for a KSP implementation
+    
+    ; Provider management
+    GetInterface                @1
+    
+    ; Provider handle operations
+    OpenProvider               @10
+    CloseProvider              @11
+    
+    ; Key handle operations  
+    CreateKey                  @20
+    OpenKey                    @21
+    DeleteKey                  @22
+    FinalizeKey                @23
+    FreeKey                    @24
+    
+    ; Cryptographic operations
+    SignHash                   @30
+    VerifySignature            @31
+    Encrypt                    @32
+    Decrypt                    @33
+    
+    ; Key management
+    ExportKey                  @40
+    ImportKey                  @41
+    
+    ; Key enumeration
+    EnumKeys                   @50
+    FreeKeyEnum                @51
+    FreeKeyName                @52
+    
+    ; Property management
+    GetProviderProperty        @60
+    SetProviderProperty        @61
+    GetKeyProperty             @62
+    SetKeyProperty             @63
+    
+    ; Algorithm support
+    EnumAlgorithms             @70
+    FreeAlgorithmList          @71
+    IsAlgSupported             @72
+    
+    ; Secret agreement (ECDH)
+    SecretAgreement            @80
+    DeriveKey                  @81
+    
+    ; Additional utility functions
+    PromptUser                 @90
+    NotifyChangeKey            @91
+    
+    ; Optional functions for enhanced functionality
+    GetKeySize                 @100
+    GetAlgorithmAuditing       @101
+    
+    ; Internal utility exports (for debugging/testing)
+    ; These are not part of the standard KSP interface
+    SupacryptKspGetVersion     @200  PRIVATE
+    SupacryptKspGetConfig      @201  PRIVATE
+    SupacryptKspGetStats       @202  PRIVATE
+    SupacryptKspReset          @203  PRIVATE
